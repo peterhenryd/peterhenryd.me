@@ -1,0 +1,6 @@
+/.idea
+/Cargo.lock
+api/.env
+/app/dist
+/*/target
+/*/.env

@@ -1,0 +1,12 @@
+.nav {
+
+}
+
+.nav-link {
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+}
+
+.nav-link-active {
+    color: var(--text-600);
+}
