@@ -1,0 +1,27 @@
+use std::env;
+use axum::error_handling::HandleErrorLayer;
+use axum::http::StatusCode;
+use axum::Router;
+use time::Duration;
+use tower::{BoxError, ServiceBuilder};
+use tower_sessions::{Expiry, PostgresStore, SessionManagerLayer};
+use tower_sessions::sqlx::PgPool;
+use tracing::warn;
+
+pub async fn with_sessions(router: Router<()>) -> anyhow::Result<Router<()>> {
+    let database_url = env::var("SESSION_DATABASE_URL")?;
+    let session_pg_pool = PgPool::connect(&database_url).await?;
+    let session_store = PostgresStore::new(session_pg_pool);
+    session_store.migrate().await?;
+
+    let sessions = ServiceBuilder::new()
+        .layer(HandleErrorLayer::new(|e: BoxError| async move {
+            warn!("Session error: {}", e);
+            StatusCode::BAD_REQUEST
+        }))
+        .layer(SessionManagerLayer::new(session_store)
+            .with_secure(true)
+            .with_expiry(Expiry::OnInactivity(Duration::days(2))));
+
+    Ok(router.layer(sessions))
+}
