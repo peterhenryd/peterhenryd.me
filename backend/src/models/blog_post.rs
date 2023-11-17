@@ -12,18 +12,18 @@ pub struct BlogPost {
     pub content: String,
     #[serde(serialize_with = "time::serde::iso8601::serialize")]
     pub created_at: OffsetDateTime,
-    #[serde(serialize_with = "option_iso8601")]
+    #[serde(serialize_with = "iso8601_option")]
     pub published_at: Option<OffsetDateTime>,
-    #[serde(serialize_with = "option_iso8601")]
+    #[serde(serialize_with = "iso8601_option")]
     pub edited_at: Option<OffsetDateTime>,
 }
 
-pub fn option_iso8601<S: Serializer>(
+pub fn iso8601_option<S: Serializer>(
     datetime: &Option<OffsetDateTime>,
     serializer: S,
 ) -> Result<S::Ok, S::Error> {
     match datetime {
         Some(date) => time::serde::iso8601::serialize(date, serializer),
-        x => x.serialize(serializer)
+        x => x.serialize(serializer),
     }
 }

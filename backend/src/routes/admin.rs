@@ -1,45 +1,55 @@
 use axum::extract::{Query, State};
-use axum::{Form, Json};
+use axum::Form;
+use axum::http::StatusCode;
 use axum::response::{IntoResponse, Response};
 use serde::Deserialize;
 use tower_sessions::Session;
-use crate::error::AppResult;
-use crate::routes::redirect::Redirect;
-use crate::state::AppState;
+use crate::api_query::ApiQuery;
+use crate::app_error::AppResult;
+use crate::app_state::AppState;
+use crate::responses::IntoDescriptiveResponse;
 
-pub async fn fetch_session_handler(session: Session, Query(redirect): Query<Redirect>) -> AppResult<Response> {
-    dbg!(&redirect);
+pub async fn fetch_session_handler(
+    session: Session,
+    Query(query): Query<ApiQuery>
+) -> AppResult<Response> {
+    let is_admin = session.get::<()>("admin")?.is_some();
+    let response = is_admin.to_string().into_response();
 
-    redirect.response(move || Ok(Json(session.get::<()>("admin")?.is_some())))
+    Ok(query.with_default(response))
 }
 
 #[derive(Deserialize)]
-pub struct CreateSession {
+pub struct CreateSessionForm {
     admin_key: String
 }
 
 pub async fn create_session_handler(
     State(AppState { admin_key, .. }): State<AppState>,
     session: Session,
-    Query(redirect): Query<Redirect>,
-    Form(create_session): Form<CreateSession>,
+    Query(query): Query<ApiQuery>,
+    Form(create_session): Form<CreateSessionForm>,
 ) -> AppResult<Response> {
-    redirect.response(move ||
-        Ok(Json(if admin_key == create_session.admin_key {
-            session.insert("admin", ())?;
-            true
-        } else {
-            false
-        }))
-    )
+    let is_admin = admin_key == create_session.admin_key;
+
+    if is_admin {
+        session.insert("admin", ())?;
+    }
+
+    Ok(query.with_default(is_admin.to_string()))
 }
 
-pub async fn delete_session_handler(session: Session, Query(redirect): Query<Redirect>) -> AppResult<Response> {
-    redirect.response(||
-        Ok(if session.remove::<()>("admin")?.is_some() {
-            "DELETED"
+pub async fn delete_session_handler(
+    session: Session,
+    Query(query): Query<ApiQuery>
+) -> AppResult<Response> {
+    let status_code =
+        if session.remove::<()>("admin")?.is_some() {
+            StatusCode::OK
         } else {
-            "NOTHING_TO_DELETE"
-        })
-    )
+            StatusCode::NOT_FOUND
+        };
+    let response = status_code.into_descriptive_response();
+
+    Ok(query.with_default(response))
 }

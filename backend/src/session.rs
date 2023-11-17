@@ -12,16 +12,20 @@ pub async fn with_sessions(router: Router<()>) -> anyhow::Result<Router<()>> {
     let database_url = env::var("SESSION_DATABASE_URL")?;
     let session_pg_pool = PgPool::connect(&database_url).await?;
     let session_store = PostgresStore::new(session_pg_pool);
+
     session_store.migrate().await?;
 
-    let sessions = ServiceBuilder::new()
-        .layer(HandleErrorLayer::new(|e: BoxError| async move {
+    let handle_error_layer =
+        HandleErrorLayer::new(|e: BoxError| async move {
             warn!("Session error: {}", e);
             StatusCode::BAD_REQUEST
-        }))
-        .layer(SessionManagerLayer::new(session_store)
-            .with_secure(true)
-            .with_expiry(Expiry::OnInactivity(Duration::days(2))));
+        });
+    let session_manager_layer = SessionManagerLayer::new(session_store)
+        .with_secure(true)
+        .with_expiry(Expiry::OnInactivity(Duration::days(2)));
+    let sessions = ServiceBuilder::new()
+        .layer(handle_error_layer)
+        .layer(session_manager_layer);
 
     Ok(router.layer(sessions))
 }

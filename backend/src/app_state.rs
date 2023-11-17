@@ -14,6 +14,6 @@ impl AppState {
 
         let admin_key = env::var("ADMIN_KEY")?;
 
-        Ok(AppState { pool, admin_key })
+        Ok(Self { pool, admin_key })
     }
 }

@@ -1,10 +1,9 @@
 use axum::Router;
-use axum::routing::{get, post, delete};
-use crate::state::AppState;
+use axum::routing::{delete, get, post};
+use crate::app_state::AppState;
 
 mod blog_post;
 mod admin;
-mod redirect;
 
 /// API Description:
 ///   GET  /blog-posts/all

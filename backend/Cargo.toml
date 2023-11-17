@@ -1,8 +1,14 @@
 [package]
 name = "peterhenryd-me"
+description = "The backend/API source code for peterhenryd.me"
+keywords = ["website", "backend", "rest", "axum"]
+categories = ["web-programming", "web-programming::http-server"]
+license = "MIT"
 version = "0.0.1"
 edition = "2021"
 authors = ["peterhenryd"]
+repository = "https://github.com/peterhenryd/peterhenryd-me"
+readme = "README.md"
 
 [dependencies]
 dotenvy = "0.15.7"
@@ -17,3 +23,4 @@ time = { version = "0.3.30", features = ["serde"] }
 diesel = { version = "2.1.4", features = ["postgres", "r2d2", "time"] }
 tower = "0.4.13"
 tower-sessions = { version = "0.5.0", features = ["postgres-store"] }
+strum_macros = "0.25.3"
