@@ -37,8 +37,4 @@ diesel::table! {
 
 diesel::joinable!(blog_post_comments -> blog_posts (blog_post_id));
 
-diesel::allow_tables_to_appear_in_same_query!(
-    blog_post_comments,
-    blog_posts,
-    users,
-);
+diesel::allow_tables_to_appear_in_same_query!(blog_post_comments, blog_posts, users,);

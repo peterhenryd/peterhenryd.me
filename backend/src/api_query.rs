@@ -1,7 +1,7 @@
 use axum::response::{IntoResponse, Redirect, Response};
 use serde::Deserialize;
 
-#[derive(Deserialize, Debug)]
+#[derive(Deserialize)]
 pub struct ApiQuery {
     redirect: Option<String>,
 }

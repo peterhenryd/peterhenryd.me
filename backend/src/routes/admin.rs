@@ -1,9 +1,6 @@
-use axum::Router;
-use axum::response::IntoResponse;
-use axum::routing::{delete, get, post};
-use serde::Deserialize;
 use crate::app_state::AppState;
-use crate::responses::IntoDescriptiveResponse;
+use axum::routing::{delete, get, post};
+use axum::Router;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -13,21 +10,18 @@ pub fn router() -> Router<AppState> {
 }
 
 mod handlers {
-    use axum::extract::{Query, State};
-    use axum::Form;
-    use axum::http::StatusCode;
-    use axum::response::{IntoResponse, Response};
-    use serde::Deserialize;
-    use tower_sessions::Session;
     use crate::api_query::ApiQuery;
     use crate::app_error::AppResult;
     use crate::app_state::AppState;
     use crate::responses::IntoDescriptiveResponse;
+    use axum::extract::{Query, State};
+    use axum::http::StatusCode;
+    use axum::response::{IntoResponse, Response};
+    use axum::Form;
+    use serde::Deserialize;
+    use tower_sessions::Session;
 
-    pub async fn get(
-        session: Session,
-        Query(query): Query<ApiQuery>,
-    ) -> AppResult<Response> {
+    pub async fn get(session: Session, Query(query): Query<ApiQuery>) -> AppResult<Response> {
         let is_admin = session.get::<()>("admin")?.is_some();
         let response = is_admin.to_string().into_response();
 
@@ -36,7 +30,7 @@ mod handlers {
 
     #[derive(Deserialize)]
     pub struct LoginForm {
-        admin_key: String
+        admin_key: String,
     }
 
     pub async fn post(
@@ -54,16 +48,12 @@ mod handlers {
         Ok(query.with_default(is_admin.to_string()))
     }
 
-    pub async fn delete(
-        session: Session,
-        Query(query): Query<ApiQuery>
-    ) -> AppResult<Response> {
-        let status_code =
-            if session.remove::<()>("admin")?.is_some() {
-                StatusCode::OK
-            } else {
-                StatusCode::NOT_FOUND
-            };
+    pub async fn delete(session: Session, Query(query): Query<ApiQuery>) -> AppResult<Response> {
+        let status_code = if session.remove::<()>("admin")?.is_some() {
+            StatusCode::OK
+        } else {
+            StatusCode::NOT_FOUND
+        };
         let response = status_code.into_descriptive_response();
 
         Ok(query.with_default(response))

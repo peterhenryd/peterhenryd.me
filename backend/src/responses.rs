@@ -1,6 +1,6 @@
 use axum::http::StatusCode;
-use axum::Json;
 use axum::response::{IntoResponse, Response};
+use axum::Json;
 use serde::Serialize;
 
 pub trait IntoDescriptiveResponse {
@@ -24,7 +24,7 @@ impl IntoDescriptiveResponse for StatusCode {
 
 #[derive(Serialize)]
 struct ValueResponse<T: Serialize> {
-    value: T
+    value: T,
 }
 
 pub trait IntoValueResponse {

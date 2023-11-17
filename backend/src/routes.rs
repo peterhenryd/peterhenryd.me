@@ -1,8 +1,8 @@
-use axum::Router;
 use crate::app_state::AppState;
+use axum::Router;
 
-mod blog_post;
 mod admin;
+mod blog_post;
 
 /// API Description:
 ///   GET  /blog-posts/all
@@ -12,7 +12,7 @@ mod admin;
 ///   POST /admin
 pub fn router(state: AppState) -> Router<()> {
     Router::new()
-        .with_state(state)
         .nest("/blog-posts", blog_post::router())
         .nest("/admin", admin::router())
+        .with_state(state)
 }

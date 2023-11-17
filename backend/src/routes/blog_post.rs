@@ -1,9 +1,6 @@
-use axum::Router;
-use axum::routing::get;
-use diesel::{ExpressionMethods, Insertable, QueryDsl, RunQueryDsl};
-use serde::Deserialize;
 use crate::app_state::AppState;
-use crate::responses::{IntoDescriptiveResponse, IntoValueResponse};
+use axum::routing::get;
+use axum::Router;
 
 pub fn router() -> Router<AppState> {
     Router::new()
@@ -13,23 +10,28 @@ pub fn router() -> Router<AppState> {
 }
 
 mod handlers {
+    use crate::app_error::AppResult;
+    use crate::app_state::AppState;
+    use crate::models::blog_post::BlogPost;
+    use crate::responses::IntoDescriptiveResponse;
+    use crate::responses::IntoValueResponse;
+    use axum::extract::Path;
     use axum::extract::State;
-    use axum::Form;
+    use axum::http::StatusCode;
     use axum::response::Response;
+    use axum::Form;
+    use axum::Json;
+    use diesel::ExpressionMethods;
+    use diesel::QueryDsl;
     use diesel::{insert_into, Insertable, RunQueryDsl};
     use serde::Deserialize;
     use time::OffsetDateTime;
-    use crate::app_error::AppResult;
-    use crate::app_state::AppState;
-    use crate::responses::IntoValueResponse;
 
     pub mod all {
-        use axum::Json;
-        use crate::models::blog_post::BlogPost;
-        use super::*;
+        use super::{AppResult, AppState, BlogPost, Json, RunQueryDsl, State};
 
         pub async fn get(
-            State(AppState { pool, .. }): State<AppState>
+            State(AppState { pool, .. }): State<AppState>,
         ) -> AppResult<Json<Vec<BlogPost>>> {
             use crate::schema::blog_posts::dsl;
 
@@ -38,30 +40,23 @@ mod handlers {
     }
 
     pub mod id {
-        use axum::extract::Path;
-        use axum::http::StatusCode;
-        use axum::Json;
-        use diesel::ExpressionMethods;
-        use crate::models::blog_post::BlogPost;
-        use crate::responses::IntoDescriptiveResponse;
-        use super::*;
+        use super::{
+            AppResult, AppState, BlogPost, ExpressionMethods, IntoDescriptiveResponse, Json, Path,
+            QueryDsl, Response, RunQueryDsl, State, StatusCode,
+        };
 
         pub async fn get(
             State(AppState { pool, .. }): State<AppState>,
-            Path(id): Path<i64>
+            Path(id): Path<i64>,
         ) -> AppResult<Result<Json<BlogPost>, Response>> {
             use crate::schema::blog_posts::dsl;
 
             let blog_posts = dsl::blog_posts
                 .filter(dsl::id.eq(id))
                 .load::<BlogPost>(&mut pool.get()?)?;
-            let blog_post = blog_posts
-                .into_iter()
-                .next();
+            let blog_post = blog_posts.into_iter().next();
             let err = StatusCode::NOT_FOUND.into_descriptive_response();
-            let response = blog_post
-                .map(Json::from)
-                .ok_or(err);
+            let response = blog_post.map(Json::from).ok_or(err);
 
             Ok(response)
         }
@@ -83,7 +78,7 @@ mod handlers {
 
     pub async fn post(
         State(AppState { pool, .. }): State<AppState>,
-        Form(create_blog_post): Form<CreationForm>
+        Form(create_blog_post): Form<CreationForm>,
     ) -> AppResult<Response> {
         use crate::schema::blog_posts::dsl;
 
