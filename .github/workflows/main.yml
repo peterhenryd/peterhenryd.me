@@ -6,6 +6,8 @@ jobs:
   discussions:
     runs-on: ubuntu-latest
     name: Writes discussions to file
+    permissions:
+      contents: write
     steps:
       - name: Write discussions step
         id: write_discussions
