@@ -15,5 +15,4 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           repo: "peterhenryd/peterhenryd-me"
-          query-fields: "title id url"
-          output-path: "data/discussions/urls.json"
+          output-path: "src/routes/blog/data.json"
