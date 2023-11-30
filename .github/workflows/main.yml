@@ -9,10 +9,9 @@ jobs:
     steps:
       - name: Write discussions step
         id: write_discussions
-        uses: peterhenryd/write-discussions-to-repo-action@v1.1
+        uses: peterhenryd/write-discussions-to-repo-action@1.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          repo-owner: "peterhenryd"
-          repo-name: "peterhenryd-me"
+          repo: "peterhenryd/peterhenryd-me"
           query-fields: "title id url"
           output-path: "data/discussions/urls.json"
